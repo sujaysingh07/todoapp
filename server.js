@@ -1,37 +1,62 @@
-var http = require('http'); // 1 - Import Node.js core module
+const express = require("express");
+const app = express();
+var cors = require('cors')
+var bodyParser = require('body-parser')
 
-var server = http.createServer(function (req, res) {   // 2 - creating server
+app.use(cors())
 
-    if (req.url == '/') { //check the URL of the current request
-        
-        // set response header
-        res.writeHead(200, { 'Content-Type': 'text/html' }); 
-        
-        // set response content    
-        res.write('<html><body><p>This is home Page.</p></body></html>');
-        res.end();
-    
-    }
-    else if (req.url == "/student") {
-        
-        res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.write('<html><body><p>This is student Page.</p></body></html>');
-        res.end();
-    
-    }
-    else if (req.url == "/admin") {
-        
-        res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.write('<html><body><p>This is admin Page.</p></body></html>');
-        res.end();
-    
-    }
-    else
-        res.end('Invalid Request!');
+app.use(bodyParser.urlencoded({ extended: false }))
 
+// parse application/json
+app.use(bodyParser.json())
+
+const mongoose = require("mongoose");
+mongoose.connect("mongodb://localhost:27017/test");
+
+const taskModel = mongoose.model("taskManager", {
+    Title: String,
+  Description: String,
+  date: {
+      type:Date, 
+      default: Date.now()
+  },
+  isCompleted: {
+    type:Boolean, 
+    default: false
+},
 
 });
 
-server.listen(5000); //3 - listen for any incoming requests
+// respond with "hello world" when a GET request is made to the homepage
+app.post("/saveTask", (req, res) => {
+  console.log(req.body);
+  const Task = new taskModel(req.body);
 
-console.log('Node.js web server at port 5000 is running..')
+  Task.save().then((data) =>{
+    console.log("Sujay",data)
+    res.send(data);
+});
+});
+
+app.get("/", (req, res) => {
+    taskModel.find().then((data)=>{
+        res.send(data);
+    })
+});
+
+app.delete("/removeTask", (req, res) => {
+    console.log(req.query)
+    taskModel.findOneAndDelete({_id:req.query._id}).then((data)=>{
+        res.send(data);
+    })
+});
+
+app.get("/updateTask",(req, res) => {
+    console.log(req.query)
+    taskModel.findOneAndUpdate({_id:req.query._id},{$set:{isCompleted:true}}).then((data)=>{
+        res.send(data);
+    })
+});
+app.listen(5000, () => {
+  console.log("app started on 5000");
+});

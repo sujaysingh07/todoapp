@@ -6,29 +6,39 @@ import Button from "@mui/material/Button";
 import Task from "./Task";
 import "react-datepicker/dist/react-datepicker.css";
 import DatePicker from "react-datepicker";
-import DesktopDatePicker from '@mui/lab/DesktopDatePicker';
-import LocalizationProvider from '@mui/lab/LocalizationProvider';
-import AdapterDateFns from '@mui/lab/AdapterDateFns';
-
+const axios = require('axios');
 
 // import { DatePickerComponent } from '@syncfusion/ej2-react-calendars';
 const Home = () => {
   const [text, setText] = useState("");
   const [textfield, setTextfield] = useState("");
   const [startDate, setStartDate] = useState(null);
-
-  // const [items, setItems] = useState([]);
+  const [items, setItems] = useState(false);
   let push = () => {
     let entry ={
       Title : text, 
-      Desciption : textfield,
+      Description : textfield,
       date : startDate
     }
+    console.log(entry);
+    axios.post('http://localhost:5000/saveTask', entry)
+    .then(function (response) {
+      console.log(response);
+      setItems(!items)
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+    
     localStorage.setItem('Entry',JSON.stringify(entry))
     setText('')
     setTextfield('')
     setStartDate(null)
+
   };
+
+ 
+
   
 
   return (
@@ -76,12 +86,15 @@ const Home = () => {
       />
       
           <br />
-          <Button variant="contained" onClick={push}>
+          <br />
+          <Button  variant="contained" onClick={push}>
             Add
           </Button>
         </div>
-        <Task />
+        <Task items = {items} />
+        {/* <Date/> */}
       </Box>
+      
     </div>
   );
 };
